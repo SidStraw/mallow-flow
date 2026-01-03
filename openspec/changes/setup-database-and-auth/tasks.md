@@ -17,15 +17,15 @@
 - [x] 2.2 建立 Drizzle 設定檔 (`drizzle.config.ts`)
 - [x] 2.3 設定 Hyperdrive 連線配置 (透過 runtimeConfig)
 - [x] 2.4 建立資料庫連線工具 (`server/utils/db.ts`)
-- [ ] 2.5 驗證: 可成功連線至 PostgreSQL (需要實際資料庫連線)
+- [x] 2.5 驗證: 可成功連線至 PostgreSQL (透過本地 Supabase Docker)
 
 ## 3. Schema 定義
 
 - [x] 3.1 建立 `streamers` 表 Schema
 - [x] 3.2 建立 `projects` 表 Schema
-- [ ] 3.3 產生 Drizzle Migrations (`pnpm db:generate`) (需要資料庫連線)
-- [ ] 3.4 執行 Migrations (`pnpm db:migrate`) (需要資料庫連線)
-- [ ] 3.5 驗證: Schema 正確建立於資料庫 (需要資料庫連線)
+- [x] 3.3 產生 Drizzle Migrations (`pnpm db:generate`)
+- [x] 3.4 執行 Migrations (`pnpm db:push`)
+- [x] 3.5 驗證: Schema 正確建立於資料庫
 
 ## 4. 驗證系統
 
@@ -37,7 +37,7 @@
 - [x] 4.6 實作登出 API (`POST /api/auth/logout`)
 - [x] 4.7 實作取得當前使用者 API (`GET /api/auth/me`)
 - [x] 4.8 撰寫驗證流程單元測試
-- [ ] 4.9 驗證: Magic Link 完整登入流程可運作 (需要實際環境測試)
+- [ ] 4.9 驗證: Magic Link 完整登入流程可運作 (需要設定 Resend 正式 API Key)
 
 ## 5. 專案管理 API
 
@@ -47,7 +47,7 @@
 - [x] 5.4 實作刪除專案 API (`DELETE /api/projects/:id`)
 - [x] 5.5 實作專案驗證中介層 (確認專案所有權)
 - [x] 5.6 撰寫專案 API 整合測試
-- [ ] 5.7 驗證: 專案 CRUD 功能正常運作 (需要實際環境測試)
+- [ ] 5.7 驗證: 專案 CRUD 功能正常運作 (需要完整登入流程)
 
 ## 6. 品質確認
 
@@ -70,6 +70,25 @@
 
 ## 備註
 
-部分任務需要實際資料庫連線才能完成驗證：
-- 2.5, 3.3, 3.4, 3.5: 需要 PostgreSQL 資料庫連線
-- 4.9, 5.7: 需要完整環境 (資料庫 + Resend API Key) 進行整合測試
+### 本地開發環境
+
+使用 Supabase CLI + Docker 進行本地開發：
+
+```bash
+# 啟動本地 Supabase
+supabase start
+
+# 停止本地 Supabase (資料會自動持久化)
+supabase stop
+
+# 推送 schema 變更
+pnpm db:push
+
+# 生成 migration 檔案
+pnpm db:generate
+```
+
+- 本地資料庫 URL: `postgresql://postgres:postgres@127.0.0.1:54322/postgres`
+- Studio 管理介面: http://127.0.0.1:54323
+- Mailpit 郵件測試: http://127.0.0.1:54324
+- 資料持久化: 存放在 Docker volumes，重啟後資料保留
