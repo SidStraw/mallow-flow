@@ -1,5 +1,5 @@
 import { z } from 'zod/v4'
-import { eq, and, desc, inArray, sql } from 'drizzle-orm'
+import { eq, and, desc, inArray, sql, lt, or } from 'drizzle-orm'
 import { questions, projects } from '../../database/schema'
 
 const querySchema = z.object({
@@ -46,12 +46,23 @@ export default defineEventHandler(async (event) => {
 
   // Parse cursor (format: "timestamp:id")
   if (cursor) {
-    const [cursorTimestamp, cursorId] = cursor.split(':')
-    if (cursorTimestamp && cursorId) {
+    const lastColonIndex = cursor.lastIndexOf(':')
+    if (lastColonIndex !== -1) {
+      const cursorTimestamp = cursor.substring(0, lastColonIndex)
+      const cursorId = parseInt(cursor.substring(lastColonIndex + 1), 10)
       const cursorDate = new Date(cursorTimestamp)
-      conditions.push(
-        sql`(${questions.createdAt}, ${questions.id}) < (${cursorDate}, ${parseInt(cursorId, 10)})`,
-      )
+      if (!Number.isNaN(cursorDate.getTime()) && !Number.isNaN(cursorId)) {
+        // (created_at, id) < (cursorDate, cursorId) using row comparison
+        conditions.push(
+          or(
+            lt(questions.createdAt, cursorDate),
+            and(
+              eq(questions.createdAt, cursorDate),
+              lt(questions.id, cursorId),
+            ),
+          )!,
+        )
+      }
     }
   }
 
